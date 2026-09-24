@@ -1,7 +1,7 @@
 # Random walk on Z^2 - simulation
 
 Monte Carlo side of the 18.821 project on random walks on the integer
-lattice. Alan and Pravan are working the analytical side; this checks
+lattice. Alan and Pavan are working the analytical side; this checks
 their results numerically and lets us sweep over shapes/starting points
 that are annoying to do by hand.
 
