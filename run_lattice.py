@@ -1,9 +1,8 @@
 """
 Monte Carlo random walk on an n x m lattice.
 
-n, m are the interior grid dimensions; the boundary is a separate ring
-around them (see shapes.rectangle). Edit CONFIGS below to change what
-gets run - every (n, m) pair gets its own section in RESULTS.md.
+n, m are the interior dimensions; the boundary ring sits outside them
+(see shapes.rectangle). Edit CONFIGS to change what runs.
 """
 
 import numpy as np
@@ -31,11 +30,7 @@ def to_mask_coords(i, j):
 
 
 def representative_starts(n, m):
-    """
-    Center, corner, and one edge point per axis (horizontal-facing,
-    vertical-facing). The two edge points coincide when n == m, which
-    doubles as a symmetry check.
-    """
+    """Center, corner, one edge point per axis. Edge points match when n == m."""
     center_i, center_j = (n + 1) // 2, (m + 1) // 2
     return [
         ("center", (center_i, center_j)),
@@ -53,15 +48,15 @@ def corner_cells(mask):
 
 
 def grid_markdown_table(mask, boundary, probs, start, corners):
-    """Markdown table laid out like the actual grid, row/col headers are mask coordinates."""
+    """Table laid out like the grid, (x, y) labels, largest y on top to match the plot."""
     rows = np.where(mask.any(axis=1))[0]
     cols = np.where(mask.any(axis=0))[0]
     r0, r1, c0, c1 = rows.min(), rows.max(), cols.min(), cols.max()
 
-    header = ["row \\ col"] + [str(c) for c in range(c0, c1 + 1)]
+    header = ["y \\ x"] + [str(c - PAD) for c in range(c0, c1 + 1)]
     lines = ["| " + " | ".join(header) + " |", "|" + "---|" * len(header)]
-    for r in range(r0, r1 + 1):
-        row_cells = [f"**{r}**"]
+    for r in range(r1, r0 - 1, -1):
+        row_cells = [f"**{r - PAD}**"]
         for c in range(c0, c1 + 1):
             cell = (r, c)
             if not mask[cell]:
@@ -87,6 +82,7 @@ def run_config(n, m, rng):
     runs = []
     for label, (i, j) in representative_starts(n, m):
         start = to_mask_coords(i, j)
+        point = shapes.mask_to_point(start, PAD)
         if not interior[start]:
             raise ValueError(f"{start} ({label}) is not an interior cell "
                               f"for a {n}x{m} lattice")
@@ -97,17 +93,17 @@ def run_config(n, m, rng):
         mean_time, sem_time = rw.expected_stopping_time(exit_steps)
         probs = rw.exit_distribution(exit_rows, exit_cols)
 
-        print(f"  {label} {start}: stopping time = {mean_time:.2f} +/- {sem_time:.2f}")
+        print(f"  {label} {point}: stopping time = {mean_time:.2f} +/- {sem_time:.2f}")
 
         image = f"lattice_{n}x{m}_{label}.png"
         fig = viz.plot_boundary_gradient(
             mask, boundary, probs, start,
-            title=f"{n}x{m} lattice: exit probability from {label} {start}"
+            title=f"{n}x{m} lattice: exit probability from {label} {point}"
         )
         fig.savefig(image, dpi=200, bbox_inches="tight")
 
         runs.append({
-            "label": label, "start": start,
+            "label": label, "start": start, "point": point,
             "mean_time": mean_time, "sem_time": sem_time,
             "grid_table": grid_markdown_table(mask, boundary, probs, start, corners),
             "image": image,
@@ -123,25 +119,24 @@ def write_report(all_results, path="RESULTS.md"):
         "absorbing boundary ring around it (`shapes.rectangle(n, m)`).\n",
         f"num_trials = {NUM_TRIALS}, seed = {SEED}\n",
         "## Corners always have exit probability 0\n",
-        "A corner cell's only neighbors are two other boundary cells, so "
-        "an interior walk can never land on one directly. It's always "
-        "absorbed one step earlier. True for any n, m.\n",
+        "A corner's only neighbors are two other boundary cells. A walk "
+        "can't land on one directly; it's absorbed one step earlier. "
+        "Holds for any n, m.\n",
     ]
 
     for (n, m), runs in all_results.items():
         lines.append(f"## {n} x {m} interior lattice\n")
-        lines.append("| starting point | mask coords | expected stopping time |")
+        lines.append("| starting point | (x, y) | expected stopping time |")
         lines.append("|---|---|---|")
         for r in runs:
-            lines.append(f"| {r['label']} | {r['start']} | "
+            lines.append(f"| {r['label']} | {r['point']} | "
                           f"{r['mean_time']:.2f} ± {r['sem_time']:.2f} |")
         lines.append("")
 
         for r in runs:
-            lines.append(f"### {n}x{m}: {r['label']} start {r['start']}\n")
+            lines.append(f"### {n}x{m}: {r['label']} start {r['point']}\n")
             lines.append(f"![{r['image']}]({r['image']})\n")
-            lines.append("Exit probability by grid position "
-                          "(row \\ col match mask coordinates):\n")
+            lines.append("Exit probability by (x, y), y increasing upward:\n")
             lines.append(r["grid_table"])
             lines.append("")
 

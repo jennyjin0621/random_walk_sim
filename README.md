@@ -13,12 +13,16 @@ boundary (a 1-cell ring around the n x m region, not part of n or m).
 For a handful of starting points we estimate the expected stopping time
 and the exit-probability distribution over the boundary.
 
+Coordinates are reported as lattice points (x, y), 0-indexed from the
+boundary's outer edge, y increasing upward, to match the paper.
+
 ## Files
 
 - `shapes.py` - builds the grid + boundary ring, splits interior/boundary
 - `random_walk.py` - runs the walks, computes stopping time and exit distribution
 - `visualize.py` - exit-probability heatmap plot
 - `run_lattice.py` - runs everything, writes `RESULTS.md`
+- `animate_walk.py` - animates a single walk for the slides
 
 ## Running it
 

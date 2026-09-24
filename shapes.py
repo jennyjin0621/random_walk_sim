@@ -14,6 +14,18 @@ def rectangle(n, m, pad=1):
     return mask
 
 
+def mask_to_point(cell, pad=1):
+    """Array (row, col) -> lattice point (x, y), 0-indexed from the boundary's outer edge."""
+    row, col = cell
+    return (col - pad, row - pad)
+
+
+def point_to_mask(point, pad=1):
+    """Inverse of mask_to_point."""
+    x, y = point
+    return (y + pad, x + pad)
+
+
 def classify(mask):
     """Split into interior cells (all 4 neighbors in-shape) and boundary cells."""
     rows, cols = mask.shape

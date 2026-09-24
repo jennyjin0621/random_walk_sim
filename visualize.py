@@ -35,11 +35,11 @@ def _bounding_box(mask):
 
 
 def _draw_boundary_gradient(ax, mask, boundary_mask, boundary_probs, start,
-                             vmax=None, cmap=SEQUENTIAL_BLUE):
+                             vmax=None, cmap=SEQUENTIAL_BLUE, pad=1):
     """
-    Draw the shape cropped to its bounding box: interior cells shaded flat
-    gray, boundary cells colored by exit probability and labeled with the
-    value, start cell marked with a star. Axis ticks are mask coordinates.
+    Shape cropped to its bounding box: interior cells flat gray, boundary
+    cells colored by exit probability and labeled, start marked with a
+    star. Axes are (x, y) lattice points, y up.
     """
     r0, r1, c0, c1 = _bounding_box(mask)
     sub_mask = mask[r0:r1 + 1, c0:c1 + 1]
@@ -61,7 +61,7 @@ def _draw_boundary_gradient(ax, mask, boundary_mask, boundary_probs, start,
                 else cmap(norm(boundary_probs.get((r0 + i, c0 + j), 0.0)))[:3]
             )
 
-    ax.imshow(rgb, origin="upper", extent=(-0.5, ncols - 0.5, nrows - 0.5, -0.5))
+    ax.imshow(rgb, origin="lower", extent=(-0.5, ncols - 0.5, -0.5, nrows - 0.5))
 
     for i in range(nrows):
         for j in range(ncols):
@@ -81,15 +81,18 @@ def _draw_boundary_gradient(ax, mask, boundary_mask, boundary_probs, start,
     ax.tick_params(which="minor", length=0)
 
     ax.set_xticks(np.arange(ncols))
-    ax.set_xticklabels(np.arange(c0, c1 + 1), fontsize=8, color=_INK_MUTED)
+    ax.set_xticklabels(np.arange(c0, c1 + 1) - pad, fontsize=8, color=_INK_MUTED)
     ax.set_yticks(np.arange(nrows))
-    ax.set_yticklabels(np.arange(r0, r1 + 1), fontsize=8, color=_INK_MUTED)
+    ax.set_yticklabels(np.arange(r0, r1 + 1) - pad, fontsize=8, color=_INK_MUTED)
     ax.tick_params(which="major", length=0)
     for spine in ax.spines.values():
         spine.set_visible(False)
 
+    ax.set_xlabel("x", fontsize=9, color=_INK_MUTED)
+    ax.set_ylabel("y", fontsize=9, color=_INK_MUTED, rotation=0, labelpad=8)
+
     ax.set_xlim(-0.5, ncols - 0.5)
-    ax.set_ylim(nrows - 0.5, -0.5)
+    ax.set_ylim(-0.5, nrows - 0.5)
     ax.set_aspect("equal")
 
     return plt.cm.ScalarMappable(cmap=cmap, norm=norm)
