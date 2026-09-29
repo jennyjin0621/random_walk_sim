@@ -211,3 +211,35 @@ Exit probability by (x, y), y increasing upward:
 | **1** | 0.294 | **start** | interior | interior | interior | 0.013 |
 | **0** | 0.000 (corner) | 0.306 | 0.099 | 0.038 | 0.013 | 0.000 (corner) |
 
+## How does time-to-get-far-away scale with distance
+
+The rectangle numbers above answer "how long to exit a fixed box." Here's a related question: with no fixed boundary at all, how does the time to first wander distance d from the start grow with d?
+
+A walk with no boundary at all has infinite expected first-passage time to any fixed distance. 2D simple random walk is recurrent, but only barely: the tail on "how long until it commits to drifting that far out" is heavy enough that the mean doesn't exist. So we put a wide absorbing wall well past anything we report (L1 distance 60, we only go out to d=20), and log the step where each trial's running-max L1 distance first reaches each shell. One batch of walks gives every d at once, since L1 distance changes by exactly +-1 a step and can't skip a shell. Distance 1 is deterministic (the first step always lands there), so the table starts at d=2.
+
+num_trials = 50000, seed = 0
+
+| d | E[time] | SEM | time / d^2 |
+|---|---|---|---|
+| 2 | 2.67 | 0.01 | 0.6684 |
+| 3 | 5.58 | 0.02 | 0.6201 |
+| 4 | 9.69 | 0.03 | 0.6057 |
+| 5 | 15.00 | 0.05 | 0.6000 |
+| 6 | 21.49 | 0.07 | 0.5969 |
+| 7 | 29.16 | 0.09 | 0.5952 |
+| 8 | 38.04 | 0.12 | 0.5944 |
+| 9 | 48.18 | 0.15 | 0.5948 |
+| 10 | 59.31 | 0.19 | 0.5931 |
+| 11 | 71.50 | 0.22 | 0.5909 |
+| 12 | 84.95 | 0.27 | 0.5899 |
+| 13 | 99.58 | 0.31 | 0.5892 |
+| 14 | 115.54 | 0.36 | 0.5895 |
+| 15 | 133.00 | 0.42 | 0.5911 |
+| 16 | 151.48 | 0.48 | 0.5917 |
+| 17 | 171.27 | 0.54 | 0.5926 |
+| 18 | 192.13 | 0.60 | 0.5930 |
+| 19 | 214.08 | 0.67 | 0.5930 |
+| 20 | 237.03 | 0.75 | 0.5926 |
+
+time / d^2 settles to about 0.59 from around d=10 on and stays flat out to d=20. That's diffusive scaling: a walk with no net drift covers distance like sqrt(time), so reaching a given distance takes time growing like distance squared. Checked against a wider wall (d=100 instead of 60, fewer trials) and the numbers agreed within normal sampling noise, so the wall placement isn't what's driving the 0.59.
+

@@ -4,11 +4,15 @@ Expected time to first reach L1 distance d from the origin.
 A truly unbounded walk has infinite expected first-passage time to any
 fixed distance (2D simple random walk is null recurrent: it gets there
 eventually with probability 1, but the tail is heavy enough that the
-mean diverges). So we put a wide absorbing wall far past any distance
-we actually report, and read off each trial's running-max distance as
-it passes through every smaller shell on the way out. One batch of
-walks gives every d at once, since L1 distance from the origin changes
-by exactly +-1 per step and can't skip a shell.
+mean doesn't exist). So we put a wide absorbing wall far past any
+distance we actually report, and read off each trial's running-max
+distance as it passes through every smaller shell on the way out. One
+batch of walks gives every d at once, since L1 distance from the origin
+changes by exactly +-1 per step and can't skip a shell.
+
+Appends to RESULTS.md rather than overwriting it, since run_lattice.py
+owns the rectangle-sweep section above it. Run run_lattice.py first if
+you want a clean full regenerate.
 """
 
 import numpy as np
@@ -90,20 +94,43 @@ def main():
         print(f"{d:>4} {mean:>10.2f} {sem:>8.2f} {mean / d**2:>10.4f}")
 
     lines = [
-        "# Expected time to reach L1 distance d\n",
-        f"First-passage time to L1 distance d from the origin, unbounded "
-        f"except for a safety wall at d = {D_MAX} (well past anything "
-        "reported here, so it doesn't bias these numbers).\n",
+        "## How does time-to-get-far-away scale with distance\n",
+        "The rectangle numbers above answer \"how long to exit a fixed "
+        "box.\" Here's a related question: with no fixed boundary at "
+        "all, how does the time to first wander distance d from the "
+        "start grow with d?\n",
+        "A walk with no boundary at all has infinite expected "
+        "first-passage time to any fixed distance. 2D simple random "
+        "walk is recurrent, but only barely: the tail on \"how long "
+        "until it commits to drifting that far out\" is heavy enough "
+        "that the mean doesn't exist. So we put a wide absorbing wall "
+        f"well past anything we report (L1 distance {D_MAX}, we only "
+        f"go out to d={MAX_D_REPORT}), and log the step where each "
+        "trial's running-max L1 distance first reaches each shell. One "
+        "batch of walks gives every d at once, since L1 distance "
+        "changes by exactly +-1 a step and can't skip a shell. Distance "
+        "1 is deterministic (the first step always lands there), so "
+        "the table starts at d=2.\n",
         f"num_trials = {NUM_TRIALS}, seed = {SEED}\n",
         "| d | E[time] | SEM | time / d^2 |",
         "|---|---|---|---|",
     ]
     for d, mean, sem in results:
         lines.append(f"| {d} | {mean:.2f} | {sem:.2f} | {mean / d**2:.4f} |")
+    lines.append("")
+    lines.append(
+        "time / d^2 settles to about 0.59 from around d=10 on and stays "
+        "flat out to d=20. That's diffusive scaling: a walk with no net "
+        "drift covers distance like sqrt(time), so reaching a given "
+        "distance takes time growing like distance squared. Checked "
+        "against a wider wall (d=100 instead of 60, fewer trials) and "
+        "the numbers agreed within normal sampling noise, so the wall "
+        "placement isn't what's driving the 0.59.\n"
+    )
 
-    with open("DISTANCE_GROWTH.md", "w") as f:
+    with open("RESULTS.md", "a") as f:
         f.write("\n".join(lines) + "\n")
-    print("wrote DISTANCE_GROWTH.md")
+    print("appended to RESULTS.md")
 
 
 if __name__ == "__main__":

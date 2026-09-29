@@ -21,7 +21,9 @@ boundary's outer edge, y increasing upward, to match the paper.
 - `shapes.py` - builds the grid + boundary ring, splits interior/boundary
 - `random_walk.py` - runs the walks, computes stopping time and exit distribution
 - `visualize.py` - exit-probability heatmap plot
-- `run_lattice.py` - runs everything, writes `RESULTS.md`
+- `run_lattice.py` - runs the fixed-box sweep, writes `RESULTS.md`
+- `run_distance_growth.py` - separate question: how does time-to-reach-
+  distance-d scale with d. Appends to `RESULTS.md`
 - `animate_walk.py` - animates a single walk for the slides
 
 ## Running it
@@ -32,10 +34,13 @@ Edit `CONFIGS` at the top of `run_lattice.py`:
 CONFIGS = [(3, 3), (5, 5), (3, 4)]
 ```
 
-then
+then, for a full clean regenerate
 
 ```
 python run_lattice.py
+python run_distance_growth.py
 ```
 
-Overwrites `RESULTS.md` and the `lattice_*.png` plots.
+in that order. `run_lattice.py` overwrites `RESULTS.md` and the
+`lattice_*.png` plots; `run_distance_growth.py` appends its own section
+on top of that.
